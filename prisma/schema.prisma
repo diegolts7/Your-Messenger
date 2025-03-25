@@ -14,12 +14,15 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  handle    String    @unique
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  Message   Message[]
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  name       String
+  handle     String    @unique
+  otpCode    String?
+  otpExpires DateTime?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  Message    Message[]
 
   @@map("users")
 }
