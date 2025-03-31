@@ -6,14 +6,16 @@ export const isTokenValid = async (
   _reply: FastifyReply
 ) => {
   const publicRoutes = [
-    "/api/auth/login",
+    //"/api/auth/login",
     "/api/auth/register",
-    "/documentation",
+    "/docs",
+    "/docs/json",
+    "/docs/static/*", // Swagger UI usa esse prefixo para assets
+    "/docs/yaml", // Algumas versões usam esse endpoint para a especificação
   ];
 
-  // Ignora rotas públicas
-  console.log(request.url);
-  if (publicRoutes.includes(request.url)) {
+  // Ignora rotas públicas e as do Swagger
+  if (publicRoutes.some((route) => request.url.startsWith(route))) {
     return;
   }
 
@@ -23,12 +25,6 @@ export const isTokenValid = async (
     if (!token) {
       throw new Error("Token não fornecido");
     }
-
-    // Verifica se o token está na blacklist (Redis ou memória)
-    /*const isBlacklisted = await app.redis.get(`blacklist:${token}`); // Se usar Redis
-    if (isBlacklisted) {
-      throw new Error('Token inválido (blacklisted)');
-    }*/
 
     // Verifica se o token é válido
     await request.jwtVerify();

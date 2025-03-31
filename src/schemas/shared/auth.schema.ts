@@ -1,39 +1,36 @@
 import { FastifySchema } from "fastify";
+import { z } from "zod";
 
-export interface ILoginBody {
-  email: string;
-}
+// Schema de entrada
+export const loginZodSchema = z
+  .object({
+    email: z
+      .string({
+        required_error: "O email é obrigatório",
+        invalid_type_error: "O email deve ser uma string",
+      })
+      .email("O tipo do email é inválido"),
+  })
+  .strict();
 
-export interface ILoginResponse {
-  message: string;
-}
+// Schema de resposta
+export const loginZodResponseSchema = z
+  .object({
+    access: z.string(),
+    refresh: z.string(),
+  })
+  .strict();
 
+// Use no FastifySchema
 export const loginSchema: FastifySchema = {
-  body: {
-    type: "object",
-    required: ["email"],
-    errorMessage: {
-      required: {
-        email: "O email é obrigatório, por favor preencha!", // Mensagem customizada
-      },
-    },
-    properties: {
-      email: {
-        type: "string",
-        format: "email",
-        errorMessage: {
-          type: "O email deve ser um texto",
-          format: "Email inválido, formato correto: usuario@exemplo.com",
-        },
-      },
-    },
-  },
+  tags: ["auth"],
+  description: "Rota para o usuário fazer login.",
+  body: loginZodSchema, // Agora funciona
   response: {
-    201: {
-      type: "object",
-      properties: {
-        message: { type: "string" },
-      },
-    },
+    201: loginZodResponseSchema,
   },
+  security: [],
 };
+
+// Tipagem do corpo da requisição
+export type LoginBodyType = z.infer<typeof loginZodSchema>;

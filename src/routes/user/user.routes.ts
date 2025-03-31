@@ -1,7 +1,7 @@
-import { FastifyInstance } from "fastify";
+import { FastifyTypedInstance } from "../../utils/types/fastify/fastify";
 
 export class UserRoutes {
-  public static register(app: FastifyInstance, prefix: string) {
+  public static register(app: FastifyTypedInstance, prefix: string) {
     app.register(
       (instance, _, done) => {
         done();

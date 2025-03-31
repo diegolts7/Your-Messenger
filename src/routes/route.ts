@@ -6,19 +6,49 @@ import { AuthRoutes } from "./auth/auth.routes";
 import { MessageRoutes } from "./message/message.routes";
 import { errorMiddleware } from "../middlewares/error/Error";
 import { isTokenValid } from "../middlewares/auth/isTokenValid";
-import ajvErrors from "ajv-errors";
+import {
+  jsonSchemaTransform,
+  serializerCompiler,
+  validatorCompiler,
+  ZodTypeProvider,
+} from "fastify-type-provider-zod";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
 
 const app = Fastify({
   logger: true,
-  ajv: {
-    plugins: [ajvErrors], // Se estiver usando ajv-errors
-    customOptions: {
-      allErrors: true,
+}).withTypeProvider<ZodTypeProvider>();
+
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
+
+// 3. Registrando o Swagger
+
+app.register(fastifySwagger, {
+  openapi: {
+    info: {
+      title: "You Messenger API",
+      version: "1.0.0",
     },
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [{ BearerAuth: [] }],
   },
+  transform: jsonSchemaTransform,
 });
 
-// 3. Registre outros plugins APÓS o Swagger
+app.register(fastifySwaggerUi, {
+  routePrefix: "/docs",
+});
+
+// liberando o cors e configurando o token
 app.register(fastifyCors, {
   origin: "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],

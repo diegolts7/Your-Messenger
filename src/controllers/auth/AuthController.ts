@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { ILoginBody } from "../../schemas/shared/auth.schema";
+import { LoginBodyType } from "../../schemas/shared/auth.schema";
 
 export class AuthController {
   static async login(
-    request: FastifyRequest<{ Body: ILoginBody }>,
+    request: FastifyRequest<{ Body: LoginBodyType }>,
     reply: FastifyReply
   ) {
     const { email } = request.body;
