@@ -28,6 +28,8 @@ app.register(fastifySwagger, {
   openapi: {
     info: {
       title: "You Messenger API",
+      description:
+        "API de mensageria focada em aprender conceitos de back-end e estudar mais sobre.",
       version: "1.0.0",
     },
     components: {

@@ -8,7 +8,11 @@ export class UserRepository {
   }
 
   static async findByEmail(email: string) {
-    return await prisma.user.findUnique({ where: { email: email } });
+    return await prisma.user.findUnique({ where: { email } });
+  }
+
+  static async findByHandle(handle: string) {
+    return await prisma.user.findUnique({ where: { handle } });
   }
 
   static async findManyWithCondition(data: Partial<User>) {
