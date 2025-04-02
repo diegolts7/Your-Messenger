@@ -1,24 +1,22 @@
 import { config } from "dotenv";
-import { prisma } from "./config/db/db";
 import { app } from "./routes/route";
+import { connectRedis } from "./config/redis/client";
+import { connectPrisma } from "./config/db/db";
 
 config();
 
-app
-  .listen({
-    port: Number(process.env.PORT) || 3000,
-    host: "0.0.0.0", // Escutando em todas as interfaces de rede
-  })
-  .then(() => {
-    console.log("server rodando");
-  })
-  .catch((err) => {
-    app.log.error(err);
+async function startServer() {
+  try {
+    await connectRedis();
+    await connectPrisma();
+
+    app.listen({ port: 3000 }, () => {
+      console.log("🚀 Servidor rodando");
+    });
+  } catch (error) {
+    console.error("❌ Falha ao iniciar o servidor. Encerrando...");
     process.exit(1);
-  });
+  }
+}
 
-async () => {
-  const users = await prisma.user.findMany();
-
-  console.log(users);
-};
+startServer();
