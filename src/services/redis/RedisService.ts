@@ -1,10 +1,17 @@
 import { redisClient } from "../../config/redis/client";
 
 export class RedisService {
-  static async setValue(key: string, value: string): Promise<void> {
-    await redisClient.set(key, value);
+  static async setValue(
+    key: string,
+    value: string,
+    expireInSeconds?: number
+  ): Promise<void> {
+    expireInSeconds
+      ? await redisClient.set(key, value, { EX: expireInSeconds })
+      : await redisClient.set(key, value);
   }
-  static async getValue(key: string): Promise<string | null> {
-    return redisClient.get(key);
+  static async getValue<T>(key: string): Promise<T | null> {
+    const value = await redisClient.get(key);
+    return value ? JSON.parse(value) : null;
   }
 }

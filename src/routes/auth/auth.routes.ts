@@ -1,6 +1,7 @@
 import { AuthController } from "../../controllers/auth/AuthController";
-import { loginSchema } from "../../schemas/auth/auth.schema";
+import { loginSchema } from "../../schemas/auth/login.schema";
 import { registerSchema } from "../../schemas/auth/register.schema";
+import { verifyCodeSchema } from "../../schemas/auth/send-code.schema";
 import { FastifyTypedInstance } from "../../utils/types/fastify/fastify";
 
 export class AuthRoutes {
@@ -14,6 +15,12 @@ export class AuthRoutes {
         );
 
         instance.post("/login", { schema: loginSchema }, AuthController.login);
+
+        instance.post(
+          "/send-code",
+          { schema: verifyCodeSchema },
+          AuthController.sendCode
+        );
 
         instance.post("/verify-token", () => {});
 

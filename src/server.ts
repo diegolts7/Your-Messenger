@@ -10,9 +10,11 @@ async function startServer() {
     await connectRedis();
     await connectPrisma();
 
-    app.listen({ port: 3000 }, () => {
-      console.log("🚀 Servidor rodando");
+    await app.listen({
+      port: Number(process.env.PORT) || 5000,
+      host: "0.0.0.0",
     });
+    console.log("server rodando");
   } catch (error) {
     console.error("❌ Falha ao iniciar o servidor. Encerrando...");
     process.exit(1);

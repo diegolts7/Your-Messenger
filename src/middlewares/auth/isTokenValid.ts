@@ -6,7 +6,8 @@ export const isTokenValid = async (
   _reply: FastifyReply
 ) => {
   const publicRoutes = [
-    //"/api/auth/login",
+    "/api/auth/send-code",
+    "/api/auth/login",
     "/api/auth/register",
     "/docs",
     "/docs/json",
