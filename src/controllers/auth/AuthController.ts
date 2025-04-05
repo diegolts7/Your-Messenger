@@ -3,6 +3,9 @@ import { LoginBodyType } from "../../schemas/auth/login.schema";
 import { RegisterBodyType } from "../../schemas/auth/register.schema";
 import { AuthService } from "../../services/auth/AuthService";
 import { VerifyCodeBodyType } from "../../schemas/auth/send-code.schema";
+import { refreshTokenBodyType } from "../../schemas/auth/refresh-token.schema";
+import { verifyTokenBodyType } from "../../schemas/auth/verify-token.schema";
+import { verifyTokenValid } from "../../middlewares/auth/verifyTokenValid";
 
 export class AuthController {
   static async login(
@@ -38,6 +41,45 @@ export class AuthController {
     reply.status(200).send({
       message: `codigo enviado com sucesso para ${email}`,
       userId: id,
+    });
+  }
+
+  static async refreshToken(
+    request: FastifyRequest<{ Body: refreshTokenBodyType }>,
+    reply: FastifyReply
+  ) {
+    const { refresh } = request.body;
+
+    const token = await AuthService.refreshTokens(refresh);
+
+    reply.status(200).send({
+      message: "token renovado com sucesso",
+      token,
+    });
+  }
+
+  static async verifyToken(
+    request: FastifyRequest<{ Body: verifyTokenBodyType }>,
+    reply: FastifyReply
+  ) {
+    const { access } = request.body;
+
+    const decoded = await verifyTokenValid(access);
+
+    reply.status(200).send({
+      message: "token é válido",
+      userId: decoded.userId,
+    });
+  }
+
+  static async logout(
+    request: FastifyRequest<{ Body: refreshTokenBodyType }>,
+    reply: FastifyReply
+  ) {
+    const { refresh } = request.body;
+
+    reply.status(200).send({
+      message: "oii",
     });
   }
 }

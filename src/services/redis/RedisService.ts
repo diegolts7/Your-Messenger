@@ -14,4 +14,8 @@ export class RedisService {
     const value = await redisClient.get(key);
     return value ? JSON.parse(value) : null;
   }
+
+  static async exists(key: string): Promise<boolean> {
+    return (await redisClient.exists(key)) > 0;
+  }
 }

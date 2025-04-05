@@ -19,14 +19,16 @@ export const loginZodSchema = z
   })
   .strict();
 
+export const tokensZodSchema = z.object({
+  access: z.string(),
+  refresh: z.string(),
+});
+
 // Schema de resposta
 export const loginZodResponseSchema = z
   .object({
     message: z.string(),
-    token: z.object({
-      access: z.string(),
-      refresh: z.string(),
-    }),
+    token: tokensZodSchema,
   })
   .strict();
 
@@ -43,3 +45,4 @@ export const loginSchema: FastifySchema = {
 
 // Tipagem do corpo da requisição
 export type LoginBodyType = z.infer<typeof loginZodSchema>;
+export type TokensBodyType = z.infer<typeof tokensZodSchema>;

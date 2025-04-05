@@ -1,4 +1,3 @@
-import { FastifyRequest } from "fastify";
 import { AuthRepository } from "../../repositories/auth/AuthRepository";
 import { UserRepository } from "../../repositories/user/UserRepository";
 import { RegisterBodyType } from "../../schemas/auth/register.schema";
@@ -7,10 +6,14 @@ import {
   BadRequestError,
   ConflictError,
   NotFoundError,
+  UnauthorizedError,
 } from "../../utils/helpers/api-error";
 import { sendMailCodeOtp } from "../email/CustomizedEmail";
 import { RedisService } from "../redis/RedisService";
 import { app } from "../../routes/route";
+import { TokensBodyType } from "../../schemas/auth/login.schema";
+import { DecodedToken, PayloadToken } from "../../utils/types/auth/auth.types";
+import { verifyTokenValid } from "../../middlewares/auth/verifyTokenValid";
 
 export class AuthService {
   static async verifyEmailAndSendOTPCode(email: string): Promise<number> {
@@ -95,20 +98,7 @@ export class AuthService {
       throw new BadRequestError("Codigo invalido, informe o codigo correto");
     }
 
-    const access = app.jwt.sign(
-      {
-        userId,
-      },
-      { expiresIn: "15m" }
-    );
-    const refresh = app.jwt.sign(
-      {
-        userId,
-      },
-      { expiresIn: "7d" }
-    );
-
-    return { access, refresh };
+    return this.createTokens({ userId });
   }
 
   static async verifyExistenceOTPCode(
@@ -123,5 +113,45 @@ export class AuthService {
         "Erro ao verificar se o código já existe para esse usuário, tente novamente."
       );
     }
+  }
+
+  static async refreshTokens(refresh: string): Promise<TokensBodyType> {
+    // Decodifica para obter userId e expiração
+    const decoded = app.jwt.decode(refresh) as PayloadToken;
+    if (!decoded?.userId) {
+      throw new UnauthorizedError("Token inválido");
+    }
+
+    const { userId } = decoded;
+    const blacklistKey = `blacklist_token:${userId}:${refresh}`;
+
+    const { exp } = await verifyTokenValid(refresh);
+
+    if (await RedisService.exists(blacklistKey))
+      throw new UnauthorizedError("O token está na blacklist");
+
+    const tokens = this.createTokens({ userId });
+
+    try {
+      // Adiciona o refresh token antigo na Blacklist com expiração segura
+      await RedisService.setValue(
+        blacklistKey,
+        "blacklisted",
+        exp ?? 60 * 60 * 24 * 7
+      );
+    } catch (error) {
+      throw new BadRequestError(
+        "Erro ao armazenar o refresh token antigo na blacklist, tente novamente."
+      );
+    }
+
+    return tokens;
+  }
+
+  static createTokens(payload: PayloadToken) {
+    const access = app.jwt.sign(payload, { expiresIn: "15m" });
+    const refresh = app.jwt.sign(payload, { expiresIn: "7d" });
+
+    return { access, refresh };
   }
 }

@@ -47,7 +47,7 @@ app.register(fastifySwagger, {
 });
 
 app.register(fastifySwaggerUi, {
-  routePrefix: "/docs",
+  routePrefix: "/api/docs",
 });
 
 // liberando o cors e configurando o token
