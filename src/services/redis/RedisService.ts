@@ -1,4 +1,3 @@
-import { redisClient } from "../../config/redis/client";
 import { RedisRepository } from "../../repositories/redis/RedisRepository";
 import { BadRequestError } from "../../utils/helpers/api-error";
 import { OtpBodyType } from "../../utils/schemas/auth/send-code.schema";
