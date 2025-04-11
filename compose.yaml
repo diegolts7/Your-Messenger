@@ -9,12 +9,15 @@ services:
     volumes:
       - .:/api
     ports:
-      - "5000:5000" # Mapeia a porta 5000 do container para a porta 5000 da máquina local
+      - "5000:5000"
       - "5555:5555"
     env_file:
       - .env
     depends_on:
       - database
+      - redis
+    networks:
+      - backend_network
 
   database:
     image: "postgres"
@@ -26,7 +29,22 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend_network
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis_messeger
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - backend_network # Certifique-se de que ambos os containers estão na mesma rede
 
 volumes:
   pgdata:
     driver: local
+
+networks:
+  backend_network:
+    driver: bridge # Certifique-se de que a rede é a mesma para todos os containers
