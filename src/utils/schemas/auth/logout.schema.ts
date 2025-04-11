@@ -8,9 +8,7 @@ export const logoutSchema: FastifySchema = {
   description: "Rota para o usuário verificar se suas credênciais são válidas.",
   body: refreshTokenZodSchema, // Agora funciona
   response: {
-    200: z.object({
-      message: z.string(),
-    }),
+    200: z.object({}),
   },
   security: [{ BearerAuth: [] }],
 };

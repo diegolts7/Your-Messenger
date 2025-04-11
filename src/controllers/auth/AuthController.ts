@@ -1,11 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { LoginBodyType } from "../../schemas/auth/login.schema";
-import { RegisterBodyType } from "../../schemas/auth/register.schema";
-import { AuthService } from "../../services/auth/AuthService";
-import { VerifyCodeBodyType } from "../../schemas/auth/send-code.schema";
-import { refreshTokenBodyType } from "../../schemas/auth/refresh-token.schema";
-import { verifyTokenBodyType } from "../../schemas/auth/verify-token.schema";
 import { verifyTokenValid } from "../../middlewares/auth/verifyTokenValid";
+import { LoginBodyType } from "../../utils/schemas/auth/login.schema";
+import { AuthService } from "../../services/auth/AuthService";
+import { RegisterBodyType } from "../../utils/schemas/auth/register.schema";
+import { VerifyCodeBodyType } from "../../utils/schemas/auth/send-code.schema";
+import { refreshTokenBodyType } from "../../utils/schemas/auth/refresh-token.schema";
+import { verifyTokenBodyType } from "../../utils/schemas/auth/verify-token.schema";
 
 export class AuthController {
   static async login(
@@ -77,6 +77,8 @@ export class AuthController {
     reply: FastifyReply
   ) {
     const { refresh } = request.body;
+
+    await AuthService.processLogout(refresh, request);
 
     reply.status(200).send({
       message: "oii",

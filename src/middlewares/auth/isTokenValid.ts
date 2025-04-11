@@ -28,5 +28,7 @@ export const isTokenValid = async (
     throw new UnauthorizedError("Token não fornecido");
   }
 
-  await verifyTokenValid(token);
+  const decoded = await verifyTokenValid(token);
+
+  request.user = decoded;
 };

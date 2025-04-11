@@ -1,11 +1,11 @@
 import { AuthController } from "../../controllers/auth/AuthController";
-import { loginSchema } from "../../schemas/auth/login.schema";
-import { registerSchema } from "../../schemas/auth/register.schema";
-import { verifyCodeSchema } from "../../schemas/auth/send-code.schema";
-import { refreshTokenSchema } from "../../schemas/auth/refresh-token.schema";
+import { loginSchema } from "../../utils/schemas/auth/login.schema";
+import { logoutSchema } from "../../utils/schemas/auth/logout.schema";
+import { refreshTokenSchema } from "../../utils/schemas/auth/refresh-token.schema";
+import { registerSchema } from "../../utils/schemas/auth/register.schema";
+import { verifyCodeSchema } from "../../utils/schemas/auth/send-code.schema";
+import { verifyTokenSchema } from "../../utils/schemas/auth/verify-token.schema";
 import { FastifyTypedInstance } from "../../utils/types/fastify/fastify";
-import { verifyTokenSchema } from "../../schemas/auth/verify-token.schema";
-import { logoutSchema } from "../../schemas/auth/logout.schema";
 
 export class AuthRoutes {
   public static register(app: FastifyTypedInstance, prefix: string) {
