@@ -1,10 +1,19 @@
 import { User } from "@prisma/client";
 import { prisma } from "../../config/db/db";
-import { CreateUser, EditUser } from "../../utils/types/user/user";
+import {
+  CreateUser,
+  customSelectUser,
+  EditUser,
+} from "../../utils/types/user/user";
 
 export class UserRepository {
-  static async findById(id: number) {
-    return await prisma.user.findUnique({ where: { id } });
+  static async findById(id: number, select?: Partial<customSelectUser>) {
+    const hasSelect = select && Object.keys(select).length > 0;
+
+    return await prisma.user.findUnique({
+      where: { id },
+      ...(hasSelect ? { select } : {}),
+    });
   }
 
   static async findByEmail(email: string) {

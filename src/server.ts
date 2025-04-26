@@ -1,13 +1,13 @@
 import { config } from "dotenv";
 import { app } from "./routes/route";
-import { connectRedis } from "./config/redis/client";
+import { Redis } from "./config/redis/client";
 import { connectPrisma } from "./config/db/db";
 
 config();
 
 async function startServer() {
   try {
-    await connectRedis();
+    new Redis();
     await connectPrisma();
 
     await app.listen({

@@ -1,3 +1,5 @@
+import { User } from "@prisma/client";
+
 export type CreateUser = {
   name: string;
   handle: string;
@@ -7,4 +9,8 @@ export type CreateUser = {
 export type EditUser = CreateUser & {
   optCode: string;
   otpExpires: Date;
+};
+
+export type customSelectUser = {
+  [K in keyof User]: boolean;
 };

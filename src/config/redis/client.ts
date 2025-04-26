@@ -1,21 +1,25 @@
-import { createClient } from "redis";
+import { createClient, RedisClientType } from "redis";
 
-export const redisClient = createClient({
-  url: `redis://redis:${process.env.REDIS_PORT}`,
-});
+export class Redis {
+  private client: RedisClientType;
 
-export async function connectRedis() {
-  return new Promise<void>((resolve, reject) => {
-    redisClient.on("error", (err) => {
+  constructor() {
+    this.client = createClient({
+      url: `redis://redis:${process.env.REDIS_PORT}`,
+    });
+    this.connect();
+  }
+
+  private async connect() {
+    this.client.on("error", (err) => {
       console.error("Erro ao conectar ao Redis:", err);
-      reject(err);
     });
 
-    redisClient.on("connect", () => {
-      console.log("✅ Redis conectado!");
-      resolve();
-    });
+    await this.client.connect();
+    console.log("✅ Redis conectado!");
+  }
 
-    redisClient.connect().catch(reject);
-  });
+  public get getClient() {
+    return this.client;
+  }
 }

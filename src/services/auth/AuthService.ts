@@ -44,15 +44,15 @@ export class AuthService {
       expiressIn: date.toISOString(),
     };
 
-    await RedisService.setOTPCodeInRedis({
-      userId: user.id,
-      payload: objectOtp,
-      exp: 180,
-    });
-
     try {
       await sendMailCodeOtp(email, String(objectOtp.otpCode));
+      await RedisService.setOTPCodeInRedis({
+        userId: user.id,
+        payload: objectOtp,
+        exp: 180,
+      });
     } catch (error) {
+      console.error(error);
       throw new BadRequestError(
         "Erro ao enviar o e-mail com o código, tente novamente."
       );

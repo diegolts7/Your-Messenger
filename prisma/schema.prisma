@@ -26,15 +26,14 @@ model User {
 }
 
 model Message {
-  id String @id @default(cuid())
-
+  id           String   @id @default(cuid())
   remetentId   Int
   remetent     User     @relation(fields: [remetentId], references: [id], onDelete: Cascade)
   emailDestiny String   @map("email_destiny")
   message      String
   title        String?
   status       Status   @default(PENDING)
-  createdAt    DateTime
+  createdAt    DateTime @default(now())
 
   @@map("messages")
 }
