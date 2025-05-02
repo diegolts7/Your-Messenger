@@ -1,13 +1,10 @@
 import { AuthRepository } from "../../repositories/auth/AuthRepository";
-import { UserRepository } from "../../repositories/user/UserRepository";
 import {
   BadRequestError,
   ConflictError,
-  NotFoundError,
   UnauthorizedError,
 } from "../../utils/helpers/api-error";
 import { sendMailCodeOtp } from "../email/CustomizedEmail";
-import { app } from "../../routes/route";
 import { DecodedToken, PayloadToken } from "../../utils/types/auth/auth.types";
 import { verifyTokenValid } from "../../middlewares/auth/verifyTokenValid";
 import { RedisRepository } from "../../repositories/redis/RedisRepository";
@@ -15,17 +12,14 @@ import { RedisService } from "../redis/RedisService";
 import { RegisterBodyType } from "../../utils/schemas/auth/register.schema";
 import { TokensBodyType } from "../../utils/schemas/auth/login.schema";
 import { FastifyRequest } from "fastify";
+import { IUserRepository } from "../../repositories/user/interface/IUserRepository";
+import { User } from "@prisma/client";
+import { app } from "../../routes/route";
 
 export class AuthService {
-  static async verifyEmailAndSendOTPCode(email: string): Promise<number> {
-    const user = await UserRepository.findByEmail(email);
+  constructor(private userRepository: IUserRepository) {}
 
-    if (!user) {
-      throw new NotFoundError(
-        "Não existe nenhum usuário cadastrado com esse email."
-      );
-    }
-
+  async verifyEmailAndSendOTPCode(user: User): Promise<number> {
     const existingOtp = await RedisService.verifyExistenceOTPCode(
       `otp:${user.id}`
     );
@@ -45,7 +39,7 @@ export class AuthService {
     };
 
     try {
-      await sendMailCodeOtp(email, String(objectOtp.otpCode));
+      await sendMailCodeOtp(user.email, String(objectOtp.otpCode));
       await RedisService.setOTPCodeInRedis({
         userId: user.id,
         payload: objectOtp,
@@ -61,7 +55,7 @@ export class AuthService {
     return user.id;
   }
 
-  static async registerUser({ email, name, handle }: RegisterBodyType) {
+  async registerUser({ email, name, handle }: RegisterBodyType) {
     const { emailExists, handleExists } =
       await AuthRepository.checkEmailAndHandle({ email, handle });
 
@@ -77,14 +71,14 @@ export class AuthService {
       );
     }
 
-    await UserRepository.createUser({
+    await this.userRepository.createUser({
       email,
       name,
       handle,
     });
   }
 
-  static async verifyOTPCodeLogin(otpCode: string, userId: number) {
+  async verifyOTPCodeLogin(otpCode: string, userId: number) {
     const otp = await RedisService.verifyExistenceOTPCode(`otp:${userId}`);
 
     if (!otp) {
@@ -100,7 +94,7 @@ export class AuthService {
     return this.createTokens({ userId });
   }
 
-  static async refreshTokens(refresh: string): Promise<TokensBodyType> {
+  async refreshTokens(refresh: string): Promise<TokensBodyType> {
     // Decodifica para obter userId e expiração
     const decoded = app.jwt.decode(refresh) as PayloadToken;
     if (!decoded?.userId) {
@@ -126,7 +120,7 @@ export class AuthService {
     return tokens;
   }
 
-  static async processLogout(refresh: string, request: FastifyRequest) {
+  async processLogout(refresh: string, request: FastifyRequest) {
     const decoded = request.user as DecodedToken;
 
     await RedisService.setTokenInBlacklist({
@@ -136,7 +130,7 @@ export class AuthService {
     });
   }
 
-  static createTokens(payload: PayloadToken) {
+  createTokens(payload: PayloadToken) {
     const access = app.jwt.sign(payload, { expiresIn: "15m" });
     const refresh = app.jwt.sign(payload, { expiresIn: "7d" });
 

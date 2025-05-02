@@ -35,12 +35,12 @@ export const statusEnum = z.enum(["PENDING", "SENT", "FAILED", "RETRYING"]);
 // Schema da Message
 export const messageSchema = z.object({
   id: z.string(),
-  remetentId: z.number(), // Int no Prisma vira number
+  remetentId: z.number(),
   emailDestiny: z.string().email(),
-  message: z.string(), // string normal
-  title: z.string().nullable(), // title é opcional no Prisma
-  status: statusEnum.default("PENDING"), // enum com valor padrão
-  createdAt: z.date(), // DateTime vira Date no Zod
+  message: z.string(),
+  title: z.string().nullable(),
+  status: statusEnum.default("PENDING"),
+  createdAt: z.date(),
 });
 
 // Fastify Schema
@@ -58,3 +58,4 @@ export const sendMessageSchema: FastifySchema = {
 
 // Tipagem do corpo da requisição
 export type SendMessageBodyType = z.infer<typeof sendMessageZodSchema>;
+export type MessageBodyType = z.infer<typeof messageSchema>;

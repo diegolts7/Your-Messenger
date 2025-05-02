@@ -5,9 +5,10 @@ import {
   customSelectUser,
   EditUser,
 } from "../../utils/types/user/user";
+import { IUserRepository } from "./interface/IUserRepository";
 
-export class UserRepository {
-  static async findById(id: number, select?: Partial<customSelectUser>) {
+export class UserPrismaRepository implements IUserRepository {
+  async findById(id: number, select?: Partial<customSelectUser>) {
     const hasSelect = select && Object.keys(select).length > 0;
 
     return await prisma.user.findUnique({
@@ -16,23 +17,23 @@ export class UserRepository {
     });
   }
 
-  static async findByEmail(email: string) {
+  async findByEmail(email: string) {
     return await prisma.user.findUnique({ where: { email } });
   }
 
-  static async findByHandle(handle: string) {
+  async findByHandle(handle: string) {
     return await prisma.user.findUnique({ where: { handle } });
   }
 
-  static async findManyWithCondition(data: Partial<User>) {
+  async findManyWithCondition(data: Partial<User>) {
     return await prisma.user.findMany({ where: data });
   }
 
-  static async createUser(data: CreateUser) {
+  async createUser(data: CreateUser) {
     return await prisma.user.create({ data });
   }
 
-  static async editUser(id: number, data: EditUser) {
+  async editUser(id: number, data: EditUser) {
     return await prisma.user.update({ data, where: { id } });
   }
 }

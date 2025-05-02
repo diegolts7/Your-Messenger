@@ -1,6 +1,5 @@
-import { FastifyRequest } from "fastify";
-import { UnauthorizedError } from "../../utils/helpers/api-error";
 import { app } from "../../routes/route";
+import { UnauthorizedError } from "../../utils/helpers/api-error";
 import { DecodedToken } from "../../utils/types/auth/auth.types";
 
 export const verifyTokenValid = async (

@@ -1,22 +1,40 @@
 import { User } from "@prisma/client";
-import { UserRepository } from "../../repositories/user/UserRepository";
 import { SendMessageBodyType } from "../../utils/schemas/message/send-message.schema";
-import { NotFoundError } from "../../utils/helpers/api-error";
+import { IMessageRepository } from "../../repositories/message/interface/IMessageRepository";
+import { CreateMessageType } from "../../utils/types/message/message.types";
+import { BadRequestError } from "../../utils/helpers/api-error";
 
 export class MessageService {
-  static async addMessageToRabbitQueue({
+  constructor(private messageRepository: IMessageRepository) {}
+
+  async addMessageToRabbitQueue({
     message,
     title,
     email_destiny,
-    userId,
-  }: SendMessageBodyType & { userId: number }) {
-    const emailUser = (await UserRepository.findById(userId, {
-      email: true,
-    })) as Pick<User, "email"> | null;
-
-    if (!emailUser)
-      throw new NotFoundError("Email do remetente não encontrado.");
+    id: userId,
+    email: emailUser,
+  }: SendMessageBodyType & Pick<User, "email" | "id">) {
+    const messageCreated = await this.createMessage({
+      message,
+      title,
+      emailDestiny: email_destiny,
+      remetentId: userId,
+    });
 
     return emailUser;
+  }
+
+  async createMessage(message: CreateMessageType) {
+    try {
+      const messageCreated = await this.messageRepository.createMessage(
+        message
+      );
+
+      return messageCreated;
+    } catch (error) {
+      throw new BadRequestError(
+        "Erro ao criar sua mensagem de envio de email."
+      );
+    }
   }
 }

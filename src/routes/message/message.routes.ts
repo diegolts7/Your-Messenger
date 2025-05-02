@@ -5,12 +5,13 @@ import { MessageController } from "../../controllers/message/MessageController";
 
 export class MessageRoutes {
   public static register(app: FastifyTypedInstance, prefix: string) {
+    const messageController = new MessageController();
     app.register(
       (instance, _, done) => {
         instance.post(
           "/",
           { schema: sendMessageSchema },
-          MessageController.create
+          messageController.create.bind(messageController)
         );
         done();
       },

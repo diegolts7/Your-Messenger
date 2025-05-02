@@ -1,39 +1,40 @@
 import { Status } from "@prisma/client";
 import { prisma } from "../../config/db/db";
+import { IMessageRepository } from "./interface/IMessageRepository";
 
-export class MessageRepository {
-  static async createMessage(data: {
+export class MessageRepository implements IMessageRepository {
+  async createMessage(data: {
     remetentId: number;
     emailDestiny: string;
     message: string;
-    title?: string;
+    title: string | null;
   }) {
     return await prisma.message.create({
       data,
     });
   }
 
-  static async findMessageById(id: string) {
+  async findMessageById(id: string) {
     return await prisma.message.findUnique({
       where: { id },
     });
   }
 
-  static async findMessagesByUser(remetentId: number) {
+  async findMessagesByUser(remetentId: number) {
     return await prisma.message.findMany({
       where: { remetentId },
       orderBy: { createdAt: "desc" },
     });
   }
 
-  static async updateMessageStatus(id: string, status: Status) {
+  async updateMessageStatus(id: string, status: Status) {
     return await prisma.message.update({
       where: { id },
       data: { status },
     });
   }
 
-  static async deleteMessage(id: string) {
+  async deleteMessage(id: string) {
     return await prisma.message.delete({
       where: { id },
     });

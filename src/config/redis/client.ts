@@ -16,7 +16,6 @@ export class Redis {
     });
 
     await this.client.connect();
-    console.log("✅ Redis conectado!");
   }
 
   public get getClient() {

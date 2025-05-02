@@ -9,38 +9,43 @@ import { FastifyTypedInstance } from "../../utils/types/fastify/fastify";
 
 export class AuthRoutes {
   public static register(app: FastifyTypedInstance, prefix: string) {
+    const authController = new AuthController();
     app.register(
       (instance, _, done) => {
         instance.post(
           "/register",
           { schema: registerSchema },
-          AuthController.register
+          authController.register.bind(authController)
         );
 
-        instance.post("/login", { schema: loginSchema }, AuthController.login);
+        instance.post(
+          "/login",
+          { schema: loginSchema },
+          authController.login.bind(authController)
+        );
 
         instance.post(
           "/send-code",
           { schema: verifyCodeSchema },
-          AuthController.sendCode
+          authController.sendCode.bind(authController)
         );
 
         instance.post(
           "/refresh-token",
           { schema: refreshTokenSchema },
-          AuthController.refreshToken
+          authController.refreshToken.bind(authController)
         );
 
         instance.post(
           "/verify-token",
           { schema: verifyTokenSchema },
-          AuthController.verifyToken
+          authController.verifyToken.bind(authController)
         );
 
         instance.post(
           "/logout",
           { schema: logoutSchema },
-          AuthController.logout
+          authController.logout.bind(authController)
         );
 
         done();

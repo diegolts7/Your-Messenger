@@ -26,5 +26,7 @@ export const errorMiddleware = (
   const statusCode = error.statusCode ?? 500;
   const message = error.statusCode ? error.message : "Internal Server Error";
 
+  console.log(error.message);
+
   return reply.code(statusCode).send({ message });
 };

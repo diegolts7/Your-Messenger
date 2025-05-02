@@ -1,16 +1,17 @@
 import { config } from "dotenv";
-import { app } from "./routes/route";
 import { Redis } from "./config/redis/client";
 import { connectPrisma } from "./config/db/db";
+import { app } from "./routes/route";
 
 config();
 
 async function startServer() {
   try {
     new Redis();
+    console.log("✅ Redis conectado!");
     await connectPrisma();
 
-    await app.listen({
+    app.listen({
       port: Number(process.env.PORT) || 5000,
       host: "0.0.0.0",
     });
