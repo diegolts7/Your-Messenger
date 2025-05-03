@@ -5,7 +5,8 @@ export class EmailService {
     to: string,
     subject: string,
     html: string,
-    text: string
+    text: string,
+    replyTo?: string
   ) {
     return await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -13,6 +14,7 @@ export class EmailService {
       subject,
       html,
       text,
+      replyTo,
     });
   }
 }

@@ -26,16 +26,28 @@ model User {
 }
 
 model Message {
-  id           String   @id @default(cuid())
+  id           String          @id @default(cuid())
   remetentId   Int
-  remetent     User     @relation(fields: [remetentId], references: [id], onDelete: Cascade)
-  emailDestiny String   @map("email_destiny")
+  remetent     User            @relation(fields: [remetentId], references: [id], onDelete: Cascade)
+  emailDestiny String          @map("email_destiny")
   message      String
   title        String?
-  status       Status   @default(PENDING)
-  createdAt    DateTime @default(now())
+  status       Status          @default(PENDING)
+  createdAt    DateTime        @default(now())
+  attempt      MessageAttempt?
 
   @@map("messages")
+}
+
+model MessageAttempt {
+  id        String   @id @default(cuid())
+  messageId String   @unique
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  retries   Int      @default(0)
+  lastTried DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@map("message_attempt")
 }
 
 enum Status {

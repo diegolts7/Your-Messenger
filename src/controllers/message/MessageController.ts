@@ -22,12 +22,12 @@ export class MessageController {
       email: true,
     })) as Pick<User, "email">;
 
-    const data = await this.messageService.addMessageToRabbitQueue({
+    const message = await this.messageService.addMessageToRabbitQueue({
       ...dataBody,
       id: userId,
       email,
     });
 
-    reply.code(201).send({ message: email });
+    reply.code(201).send({ message: message });
   }
 }

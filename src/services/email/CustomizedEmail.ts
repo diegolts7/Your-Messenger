@@ -1,3 +1,5 @@
+import { BadRequestError } from "../../utils/helpers/api-error";
+import { MessagePayloadInExchange } from "../../utils/types/message/message.types";
 import { EmailService } from "./EmailService";
 
 export const sendMailCodeOtp = async (to: string, code: string) => {
@@ -105,4 +107,62 @@ export const sendMailCodeOtp = async (to: string, code: string) => {
 `;
 
   return await EmailService.sendEmail(to, subject, html, text);
+};
+
+export const sendMailMessage = async ({
+  title,
+  emailDestiny,
+  emailRemetent,
+  message,
+}: Omit<MessagePayloadInExchange, "idMessage">) => {
+  const html = `   
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Nova mensagem recebida</title>
+        </head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; color: #222; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="margin-bottom: 20px;">
+            ${
+              title
+                ? `<h2 style="color: #333; margin: 0 0 15px 0;">${title}</h2>`
+                : ""
+            }
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 4px; margin: 15px 0;">
+              <p style="margin: 0; white-space: pre-line;">${message}</p>
+            </div>
+          </div>
+          
+          <div style="border-top: 1px solid #eaeaea; padding-top: 15px; font-size: 12px; color: #666;">
+            <p style="margin: 5px 0;">Mensagem enviada por: ${emailRemetent}</p>
+            <p style="margin: 5px 0;">Este é um e-mail automático, ao responder você falara com o enviou.</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+  const texto = `
+      Nova mensagem de: ${emailRemetent}
+  
+      ${title ? `Assunto: ${title}\n\n` : ""}
+      Mensagem:
+      ${message}
+  
+      ---
+      Mensagem enviada automaticamente. Não responda este e-mail.
+    `;
+
+  try {
+    return await EmailService.sendEmail(
+      emailDestiny,
+      title || "Nova mensagem recebida",
+      html,
+      texto,
+      emailRemetent
+    );
+  } catch (error) {
+    throw new BadRequestError("Erro ao enviar o e-mail");
+  }
 };

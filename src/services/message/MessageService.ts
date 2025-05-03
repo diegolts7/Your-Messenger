@@ -1,8 +1,13 @@
 import { User } from "@prisma/client";
 import { SendMessageBodyType } from "../../utils/schemas/message/send-message.schema";
 import { IMessageRepository } from "../../repositories/message/interface/IMessageRepository";
-import { CreateMessageType } from "../../utils/types/message/message.types";
+import {
+  CreateMessageType,
+  MessagePayloadInExchange,
+} from "../../utils/types/message/message.types";
 import { BadRequestError } from "../../utils/helpers/api-error";
+import { RabbitMQService } from "../rabbitMq/RabbitMqService";
+import { sendMailMessage } from "../email/CustomizedEmail";
 
 export class MessageService {
   constructor(private messageRepository: IMessageRepository) {}
@@ -21,7 +26,26 @@ export class MessageService {
       remetentId: userId,
     });
 
-    return emailUser;
+    const sendToExchange =
+      await RabbitMQService.publishInExchange<MessagePayloadInExchange>({
+        exchange: "mensageria",
+        routingKey: "email",
+        message: {
+          message,
+          title,
+          emailDestiny: email_destiny,
+          emailRemetent: emailUser,
+          idMessage: messageCreated.id,
+        },
+      });
+
+    if (!sendToExchange) {
+      throw new BadRequestError(
+        "Erro ao enviar sua mensagem de email para fila de processamento"
+      );
+    }
+
+    return messageCreated;
   }
 
   async createMessage(message: CreateMessageType) {

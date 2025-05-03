@@ -16,6 +16,7 @@ services:
     depends_on:
       - database
       - redis
+      - rabbitmq
     networks:
       - backend_network
 
@@ -41,8 +42,23 @@ services:
     networks:
       - backend_network # Certifique-se de que ambos os containers estão na mesma rede
 
+  rabbitmq:
+    image: "rabbitmq:management"
+    container_name: rabbitmq_messeger
+    ports:
+      - "15672:15672" # Porta do painel de administração (Management Plugin)
+      - "5672:5672" # Porta do protocolo AMQP
+    env_file:
+      - .env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - backend_network # Certifique-se de que ambos os containers estão na mesma rede
+
 volumes:
   pgdata:
+    driver: local
+  rabbitmq-data:
     driver: local
 
 networks:
