@@ -1,15 +1,17 @@
 import { Status } from "@prisma/client";
 import { prisma } from "../../config/db/db";
 import { IMessageRepository } from "./interface/IMessageRepository";
+import { CreateMessageType } from "../../utils/types/message/message.types";
 
 export class MessageRepository implements IMessageRepository {
-  async createMessage(data: {
-    remetentId: number;
-    emailDestiny: string;
-    message: string;
-    title: string | null;
-  }) {
+  async createMessage(data: CreateMessageType) {
     return await prisma.message.create({
+      data,
+    });
+  }
+
+  async createManyMessage(data: CreateMessageType[]) {
+    return await prisma.message.createMany({
       data,
     });
   }

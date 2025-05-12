@@ -1,5 +1,3 @@
-import { User } from "@prisma/client";
-import { SendMessageBodyType } from "../../utils/schemas/message/send-message.schema";
 import { IMessageRepository } from "../../repositories/message/interface/IMessageRepository";
 import {
   CreateMessageType,
@@ -7,45 +5,57 @@ import {
 } from "../../utils/types/message/message.types";
 import { BadRequestError } from "../../utils/helpers/api-error";
 import { RabbitMQService } from "../rabbitMq/RabbitMqService";
-import { sendMailMessage } from "../email/CustomizedEmail";
+import { Message } from "@prisma/client";
 
 export class MessageService {
   constructor(private messageRepository: IMessageRepository) {}
 
   async addMessageToRabbitQueue({
     message,
-    title,
-    email_destiny,
-    id: userId,
-    email: emailUser,
-  }: SendMessageBodyType & Pick<User, "email" | "id">) {
-    const messageCreated = await this.createMessage({
-      message,
-      title,
-      emailDestiny: email_destiny,
-      remetentId: userId,
+    emailRemetent,
+  }: {
+    message: CreateMessageType;
+    emailRemetent: string;
+  }) {
+    const messageCreated = await this.createMessage(message);
+
+    await this.sendMessageToMensageriaExchange({
+      message: message.message,
+      title: message.title,
+      emailDestiny: message.emailDestiny,
+      emailRemetent,
+      idMessage: messageCreated.id,
     });
 
-    const sendToExchange =
-      await RabbitMQService.publishInExchange<MessagePayloadInExchange>({
-        exchange: "mensageria",
-        routingKey: "email",
-        message: {
+    return messageCreated;
+  }
+
+  async addManyMessagesToRabbitQueue({
+    messages,
+    emailRemetent,
+  }: {
+    messages: CreateMessageType[];
+    emailRemetent: string;
+  }) {
+    const messagesCreateds = await this.createManyMessagesToSendToRabbit(
+      messages
+    );
+
+    const promisesMessageToRabbit = messagesCreateds.map(
+      async ({ message, title, id, emailDestiny }) => {
+        return await this.sendMessageToMensageriaExchange({
           message,
           title,
-          emailDestiny: email_destiny,
-          emailRemetent: emailUser,
-          idMessage: messageCreated.id,
-        },
-      });
+          idMessage: id,
+          emailDestiny,
+          emailRemetent,
+        });
+      }
+    );
 
-    if (!sendToExchange) {
-      throw new BadRequestError(
-        "Erro ao enviar sua mensagem de email para fila de processamento"
-      );
-    }
+    await Promise.all(promisesMessageToRabbit);
 
-    return messageCreated;
+    return messagesCreateds;
   }
 
   async createMessage(message: CreateMessageType) {
@@ -60,5 +70,41 @@ export class MessageService {
         "Erro ao criar sua mensagem de envio de email."
       );
     }
+  }
+
+  async createManyMessagesToSendToRabbit(messages: CreateMessageType[]) {
+    const promises = messages.map(async (msg) => {
+      try {
+        return await this.createMessage(msg);
+      } catch (error) {
+        return null;
+      }
+    });
+    const messagesCreated = await Promise.all(promises);
+
+    const messagesCreatedSuccess = messagesCreated.filter(
+      (msg): msg is Message => msg !== null
+    );
+
+    return messagesCreatedSuccess;
+  }
+
+  private async sendMessageToMensageriaExchange(
+    message: MessagePayloadInExchange
+  ) {
+    const sendToExchange =
+      await RabbitMQService.publishInExchange<MessagePayloadInExchange>({
+        exchange: "mensageria",
+        routingKey: "email",
+        message,
+      });
+
+    if (!sendToExchange) {
+      throw new BadRequestError(
+        "Erro ao enviar sua mensagem de email para fila de processamento"
+      );
+    }
+
+    return sendToExchange;
   }
 }
